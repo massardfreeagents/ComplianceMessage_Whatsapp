@@ -4,12 +4,10 @@ Secrets necessários:
     WHATSAPP_API_URL, WHATSAPP_API_KEY, WHATSAPP_INSTANCE
     WHATSAPP_GROUPS, WHATSAPP_CONTACTS
     GROQ_API_KEY
-    NOTIFY_WHATSAPP (número para notificação ao terminar, ex: 5521999999999)
-    WORKER_URL      (URL do worker no Railway, ex: https://wa-worker-xxx.up.railway.app)
-    WORKER_SECRET   (senha compartilhada entre Streamlit e Worker)
+    NOTIFY_WHATSAPP, WORKER_URL, WORKER_SECRET
 """
 
-import os, base64, json, time, urllib3
+import os, base64, time, urllib3
 import streamlit as st
 import requests
 from datetime import datetime, timezone, timedelta
@@ -22,24 +20,51 @@ st.set_page_config(page_title="ForExperts · WhatsApp", page_icon="📱",
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap');
-*, *::before, *::after { box-sizing: border-box; } html, body, [class*="css"] { font-family:'Syne',sans-serif; background:#080e1a; color:#dde2ee; } .stApp { background:#080e1a; } section.main > div { max-width:720px !important; margin:0 auto; padding:1rem 1rem 4rem; } .hero { padding:1.5rem; background:linear-gradient(120deg,#0a1628 0%,#0d2010 60%,#080e1a 100%);
+*, *::before, *::after { box-sizing: border-box; }
+html, body, [class*="css"] { font-family:'Syne',sans-serif; background:#080e1a; color:#dde2ee; }
+.stApp { background:#080e1a; }
+section.main > div { max-width:720px !important; margin:0 auto; padding:1rem 1rem 4rem; }
+.hero { padding:1.5rem; background:linear-gradient(120deg,#0a1628 0%,#0d2010 60%,#080e1a 100%);
     border:1px solid rgba(37,211,102,0.18); border-radius:16px; margin-bottom:1.5rem;
-    position:relative; overflow:hidden; } .hero::after { content:''; position:absolute; right:-40px; top:-40px; width:200px; height:200px;
-    background:radial-gradient(circle,rgba(37,211,102,0.07) 0%,transparent 70%); pointer-events:none; } .hero-row { display:flex; align-items:center; gap:1rem; } .hero-icon { font-size:2.4rem; line-height:1; filter:drop-shadow(0 0 14px rgba(37,211,102,0.5)); } .hero-title { font-size:1.5rem; font-weight:800; color:#fff; margin:0; line-height:1.1; } .hero-sub { color:#25d366; font-size:0.72rem; font-weight:600; letter-spacing:0.13em; text-transform:uppercase; margin-top:0.25rem; } .hero-status { margin-top:0.9rem; font-size:0.8rem; } .card { background:rgba(255,255,255,0.028); border:1px solid rgba(255,255,255,0.07);
-    border-radius:14px; padding:1.2rem 1.3rem; margin-bottom:1rem; } .card-title { font-size:0.7rem; font-weight:700; color:#25d366; text-transform:uppercase;
-    letter-spacing:0.13em; margin-bottom:0.9rem; } .bubble { background:#1f2c34; border-radius:0 12px 12px 12px; padding:0.8rem 1rem;
+    position:relative; overflow:hidden; }
+.hero::after { content:''; position:absolute; right:-40px; top:-40px; width:200px; height:200px;
+    background:radial-gradient(circle,rgba(37,211,102,0.07) 0%,transparent 70%); pointer-events:none; }
+.hero-row { display:flex; align-items:center; gap:1rem; }
+.hero-icon { font-size:2.4rem; line-height:1; filter:drop-shadow(0 0 14px rgba(37,211,102,0.5)); }
+.hero-title { font-size:1.5rem; font-weight:800; color:#fff; margin:0; line-height:1.1; }
+.hero-sub { color:#25d366; font-size:0.72rem; font-weight:600; letter-spacing:0.13em; text-transform:uppercase; margin-top:0.25rem; }
+.hero-status { margin-top:0.9rem; font-size:0.8rem; }
+.card { background:rgba(255,255,255,0.028); border:1px solid rgba(255,255,255,0.07);
+    border-radius:14px; padding:1.2rem 1.3rem; margin-bottom:1rem; }
+.card-title { font-size:0.7rem; font-weight:700; color:#25d366; text-transform:uppercase;
+    letter-spacing:0.13em; margin-bottom:0.9rem; }
+.bubble { background:#1f2c34; border-radius:0 12px 12px 12px; padding:0.8rem 1rem;
     font-family:'DM Mono',monospace; font-size:0.82rem; color:#e9edef; line-height:1.6;
-    white-space:pre-wrap; word-break:break-word; border-left:3px solid #25d366; margin-top:0.5rem; } .result-grid { display:grid; grid-template-columns:1fr 1fr; gap:0.8rem; margin-top:1rem; } .stat-ok { background:rgba(37,211,102,0.08); border:1px solid rgba(37,211,102,0.25);
-    border-radius:12px; padding:1rem; text-align:center; } .stat-fail { background:rgba(248,113,113,0.08); border:1px solid rgba(248,113,113,0.25);
-    border-radius:12px; padding:1rem; text-align:center; } .stat-num-ok { font-size:2rem; font-weight:800; color:#25d366; } .stat-num-fail { font-size:2rem; font-weight:800; color:#f87171; } .stat-lbl { font-size:0.68rem; text-transform:uppercase; letter-spacing:0.1em; margin-top:0.2rem; } .log-line { font-family:'DM Mono',monospace; font-size:0.74rem; padding:5px 0;
-    border-bottom:1px solid rgba(255,255,255,0.04); display:flex; gap:0.8rem; align-items:center; } .log-ok { color:#25d366; } .log-fail { color:#f87171; } .log-time { color:#4a5568; white-space:nowrap; }
-/* contato chip com X */
-.contact-list { display:flex; flex-wrap:wrap; gap:6px; margin-top:0.5rem; } .stTextArea textarea { background:#0f1a2e !important; border:1px solid rgba(37,211,102,0.25) !important;
+    white-space:pre-wrap; word-break:break-word; border-left:3px solid #25d366; margin-top:0.5rem; }
+.result-grid { display:grid; grid-template-columns:1fr 1fr; gap:0.8rem; margin-top:1rem; }
+.stat-ok { background:rgba(37,211,102,0.08); border:1px solid rgba(37,211,102,0.25);
+    border-radius:12px; padding:1rem; text-align:center; }
+.stat-fail { background:rgba(248,113,113,0.08); border:1px solid rgba(248,113,113,0.25);
+    border-radius:12px; padding:1rem; text-align:center; }
+.stat-num-ok { font-size:2rem; font-weight:800; color:#25d366; }
+.stat-num-fail { font-size:2rem; font-weight:800; color:#f87171; }
+.stat-lbl { font-size:0.68rem; text-transform:uppercase; letter-spacing:0.1em; margin-top:0.2rem; }
+.log-line { font-family:'DM Mono',monospace; font-size:0.74rem; padding:5px 0;
+    border-bottom:1px solid rgba(255,255,255,0.04); display:flex; gap:0.8rem; align-items:center; }
+.log-ok { color:#25d366; } .log-fail { color:#f87171; } .log-time { color:#4a5568; white-space:nowrap; }
+.stTextArea textarea { background:#0f1a2e !important; border:1px solid rgba(37,211,102,0.25) !important;
     border-radius:10px !important; color:#dde2ee !important;
-    font-family:'DM Mono',monospace !important; font-size:0.88rem !important; line-height:1.65 !important; } .stTextInput input { background:#0f1a2e !important; border:1px solid rgba(255,255,255,0.1) !important;
-    border-radius:8px !important; color:#dde2ee !important; font-size:0.88rem !important; } .stButton > button { font-family:'Syne',sans-serif !important; font-weight:700 !important;
-    border-radius:10px !important; width:100%; } .stMultiSelect [data-baseweb="tag"] { background:rgba(37,211,102,0.15) !important; color:#25d366 !important; } .stCheckbox label, .stToggle label { font-size:0.95rem !important; padding:0.3rem 0 !important; } .bg-info { background:rgba(37,211,102,0.08); border:1px solid rgba(37,211,102,0.2);
-    border-radius:10px; padding:0.8rem 1rem; font-size:0.82rem; color:#25d366; margin-top:0.5rem; } </style> """, unsafe_allow_html=True)
+    font-family:'DM Mono',monospace !important; font-size:0.88rem !important; line-height:1.65 !important; }
+.stTextInput input { background:#0f1a2e !important; border:1px solid rgba(255,255,255,0.1) !important;
+    border-radius:8px !important; color:#dde2ee !important; font-size:0.88rem !important; }
+.stButton > button { font-family:'Syne',sans-serif !important; font-weight:700 !important;
+    border-radius:10px !important; width:100%; }
+.stMultiSelect [data-baseweb="tag"] { background:rgba(37,211,102,0.15) !important; color:#25d366 !important; }
+.stCheckbox label, .stToggle label { font-size:0.95rem !important; padding:0.3rem 0 !important; }
+.bg-info { background:rgba(37,211,102,0.08); border:1px solid rgba(37,211,102,0.2);
+    border-radius:10px; padding:0.8rem 1rem; font-size:0.82rem; color:#25d366; margin-top:0.5rem; }
+</style>
+""", unsafe_allow_html=True)
 
 
 # ─── Helpers API ──────────────────────────────────────────────────────────────
@@ -51,7 +76,7 @@ def fetch_grupos():
     url  = f"{_api_url()}/group/fetchAllGroups/{_instance()}?getParticipants=false"
     resp = requests.get(url, headers=_headers(), timeout=20, verify=False)
     resp.raise_for_status()
-    data = resp.json()
+    data  = resp.json()
     items = data if isinstance(data,list) else data.get("groups",[])
     return sorted([{"id":g.get("id") or g.get("remoteJid",""),
                     "nome":g.get("subject") or g.get("name","Sem nome")} for g in items],
@@ -92,22 +117,21 @@ def enviar_msg(jid, texto, imagem_b64=None, imagem_mime="image/jpeg", imagem_nom
     return r.status_code in [200,201]
 
 def disparar_background(destinos, mensagem, imagem_b64, imagem_mime, imagem_nome):
-    """Envia job para o worker no Railway rodar em background."""
     worker_url    = os.getenv("WORKER_URL","")
     worker_secret = os.getenv("WORKER_SECRET","")
     if not worker_url:
         return False, "WORKER_URL não configurado"
     payload = {
-        "secret":       worker_secret,
-        "mensagem":     mensagem,
-        "destinos":     destinos,
-        "imagem_b64":   imagem_b64 or "",
-        "imagem_mime":  imagem_mime,
-        "imagem_nome":  imagem_nome,
-        "notify_jid":   os.getenv("NOTIFY_WHATSAPP","") + "@s.whatsapp.net",
-        "api_url":      _api_url(),
-        "api_key":      os.getenv("WHATSAPP_API_KEY",""),
-        "instance":     _instance(),
+        "secret":      worker_secret,
+        "mensagem":    mensagem,
+        "destinos":    destinos,
+        "imagem_b64":  imagem_b64 or "",
+        "imagem_mime": imagem_mime,
+        "imagem_nome": imagem_nome,
+        "notify_jid":  os.getenv("NOTIFY_WHATSAPP","") + "@s.whatsapp.net",
+        "api_url":     _api_url(),
+        "api_key":     os.getenv("WHATSAPP_API_KEY",""),
+        "instance":    _instance(),
     }
     try:
         r = requests.post(f"{worker_url}/dispatch", json=payload, timeout=15)
@@ -118,14 +142,16 @@ def disparar_background(destinos, mensagem, imagem_b64, imagem_mime, imagem_nome
         return False, str(e)
 
 
-# ─── Session state ────────────────────────────────────────────────────────────
+# ─── Session state ─────────────────────────────────────────────────────────────
 for k,v in {"grupos_cache":[],"contatos_cache":[],"historico":[],"msg_corrigida":"",
             "contatos_excluidos":set(),"grupos_excluidos":set()}.items():
     if k not in st.session_state:
         st.session_state[k] = v
 
-# ─── HERO ─────────────────────────────────────────────────────────────────────
-api_ok = bool(_api_url() and os.getenv("WHATSAPP_API_KEY")) worker_ok = bool(os.getenv("WORKER_URL")) status_html = (
+# ─── HERO ──────────────────────────────────────────────────────────────────────
+api_ok    = bool(_api_url() and os.getenv("WHATSAPP_API_KEY"))
+worker_ok = bool(os.getenv("WORKER_URL"))
+status_html = (
     f'<span style="color:#25d366;font-weight:700">● API conectada</span>'
     f'<span style="color:#4a5568;font-size:0.75rem"> · {_instance()}</span>'
     + (f' <span style="color:#25d366;font-size:0.75rem">· Worker ativo</span>' if worker_ok else
@@ -143,7 +169,7 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# ─── 1. MENSAGEM ──────────────────────────────────────────────────────────────
+# ─── 1. MENSAGEM ───────────────────────────────────────────────────────────────
 st.markdown('<div class="card"><div class="card-title">✏️ Mensagem</div>', unsafe_allow_html=True)
 
 if st.session_state.msg_corrigida:
@@ -154,7 +180,7 @@ mensagem = st.text_area("Texto", placeholder="Digite aqui o texto que deseja env
                         height=160, key="msg_texto", label_visibility="collapsed")
 
 chars = len(mensagem)
-cor = "#f87171" if chars>1000 else "#25d366" if chars>0 else "#4a5568"
+cor   = "#f87171" if chars>1000 else "#25d366" if chars>0 else "#4a5568"
 st.markdown(f'<span style="color:{cor};font-size:0.76rem;font-family:\'DM Mono\',monospace">{chars} caracteres</span>',
             unsafe_allow_html=True)
 
@@ -171,22 +197,24 @@ if st.button("🔤 Corrigir português", key="btn_corrigir", use_container_width
             st.error(f"Erro na correção: {e}")
 
 uploaded_img = st.file_uploader("📎 Anexar imagem (opcional)",
-                                type=["jpg","jpeg","png","webp"], key="img_upload") if mensagem.strip():
-    st.markdown(f'<div class="bubble">{mensagem}</div>', unsafe_allow_html=True) if uploaded_img:
+                                type=["jpg","jpeg","png","webp"], key="img_upload")
+if mensagem.strip():
+    st.markdown(f'<div class="bubble">{mensagem}</div>', unsafe_allow_html=True)
+if uploaded_img:
     st.image(uploaded_img, caption="Imagem que será enviada", use_container_width=True)
 
 st.markdown('</div>', unsafe_allow_html=True)
 
-# ─── 2. DESTINOS ─────────────────────────────────────────────────────────────
+# ─── 2. DESTINOS ───────────────────────────────────────────────────────────────
 st.markdown('<div class="card"><div class="card-title">🎯 Destinos</div>', unsafe_allow_html=True)
 
-usar_grupos   = st.checkbox("📢 Grupos",            value=True,  key="cb_grupos")
-usar_contatos = st.checkbox("👤 Contatos da agenda", value=False, key="cb_contatos")
+usar_grupos   = st.checkbox("📢 Grupos",             value=True,  key="cb_grupos")
+usar_contatos = st.checkbox("👤 Contatos da agenda",  value=False, key="cb_contatos")
 
 grupos_sel   = []
 contatos_sel = []
 
-# ── Grupos ────────────────────────────────────────────────────────────────────
+# ── Grupos ─────────────────────────────────────────────────────────────────────
 if usar_grupos:
     st.markdown("---")
     st.markdown('<div class="card-title" style="margin-bottom:0.5rem">📢 Grupos</div>', unsafe_allow_html=True)
@@ -213,7 +241,6 @@ if usar_grupos:
 
         st.caption(f"{len(lista)} grupo(s) — toque no ✕ para excluir")
 
-        # renderiza chips clicáveis
         cols = st.columns(2)
         for i, g in enumerate(lista):
             with cols[i % 2]:
@@ -228,11 +255,12 @@ if usar_grupos:
 
         grupos_sel = [g["id"] for g in lista]
 
-        if st.button("↺ Restaurar grupos removidos", key="restore_grupos"):
-            st.session_state.grupos_excluidos = set()
-            st.rerun()
+        if st.session_state.grupos_excluidos:
+            if st.button("↺ Restaurar grupos removidos", key="restore_grupos"):
+                st.session_state.grupos_excluidos = set()
+                st.rerun()
 
-# ── Contatos ──────────────────────────────────────────────────────────────────
+# ── Contatos ───────────────────────────────────────────────────────────────────
 if usar_contatos:
     st.markdown("---")
     st.markdown('<div class="card-title" style="margin-bottom:0.5rem">👤 Contatos</div>', unsafe_allow_html=True)
@@ -257,44 +285,34 @@ if usar_contatos:
         ativos = [c for c in lista_c if c["id"] not in st.session_state.contatos_excluidos]
         st.caption(f"{len(ativos)} ativo(s)" + (f" · {total_excluidos} removido(s)" if total_excluidos else ""))
 
+        # data_editor com checkbox — compacto, sem botão extra
         df = pd.DataFrame([{
-            "Enviar": c["id"] not in st.session_state.contatos_excluidos,
-            "Nome":   c["nome"],
+            "✓":    c["id"] not in st.session_state.contatos_excluidos,
+            "Nome": c["nome"],
+            "_id":  c["id"],
         } for c in lista_c])
 
         edited = st.data_editor(
-            df[["Enviar","Nome"]],
+            df[["✓","Nome"]],
             use_container_width=True,
             hide_index=True,
-            height=380,
+            height=400,
             column_config={
-                "Enviar": st.column_config.CheckboxColumn("✓", width="small"),
-                "Nome":   st.column_config.TextColumn("Nome", disabled=True),
+                "✓":    st.column_config.CheckboxColumn("✓", width="small"),
+                "Nome": st.column_config.TextColumn("Nome", disabled=True),
             },
             key="contact_editor"
         )
 
+        # atualiza excluídos baseado no checkbox — sem rerun
         novos_excluidos = set()
         for i, row in edited.iterrows():
-            if not row["Enviar"]:
+            if not row["✓"]:
                 novos_excluidos.add(lista_c[i]["id"])
-        if novos_excluidos != st.session_state.contatos_excluidos:
-            st.session_state.contatos_excluidos = novos_excluidos
+        st.session_state.contatos_excluidos = novos_excluidos
 
         if total_excluidos:
-            if st.button("↺ Restaurar todos os removidos", key="restore_contatos",
-                         use_container_width=True):
-                st.session_state.contatos_excluidos = set()
-                st.rerun()
-
-        contatos_sel = [c["id"] for c in todos_c
-                        if c["id"] not in st.session_state.contatos_excluidos]
-
-        st.markdown('</div>', unsafe_allow_html=True)
-
-        if total_excluidos:
-            if st.button("↺ Restaurar todos os removidos", key="restore_contatos",
-                         use_container_width=True):
+            if st.button("↺ Restaurar todos", key="restore_contatos", use_container_width=True):
                 st.session_state.contatos_excluidos = set()
                 st.rerun()
 
@@ -303,8 +321,10 @@ if usar_contatos:
 
 st.markdown('</div>', unsafe_allow_html=True)
 
-# ─── 3. MODO DE ENVIO ────────────────────────────────────────────────────────
-todos_destinos = grupos_sel + contatos_sel total  = len(todos_destinos) pronto = bool(mensagem.strip()) and total > 0
+# ─── 3. MODO DE ENVIO ──────────────────────────────────────────────────────────
+todos_destinos = grupos_sel + contatos_sel
+total  = len(todos_destinos)
+pronto = bool(mensagem.strip()) and total > 0
 
 if total > 0:
     st.markdown(
@@ -341,7 +361,6 @@ if st.button(
     disabled=not pronto, key="btn_enviar"
 ):
     if "Background" in modo:
-        # ── Envio em background ──────────────────────────────────────────────
         with st.spinner("Despachando job para o servidor..."):
             ok, info = disparar_background(todos_destinos, mensagem, imagem_b64, imagem_mime, imagem_nome)
         if ok:
@@ -350,7 +369,6 @@ if st.button(
         else:
             st.error(f"Erro ao despachar job: {info}")
     else:
-        # ── Envio direto ─────────────────────────────────────────────────────
         barra    = st.progress(0, text="Iniciando...")
         brasilia = timezone(timedelta(hours=-3))
         enviados = falhas = 0
@@ -385,7 +403,7 @@ if st.button(
         if enviados > 0:
             st.balloons()
 
-# ─── 4. HISTÓRICO ────────────────────────────────────────────────────────────
+# ─── 4. HISTÓRICO ──────────────────────────────────────────────────────────────
 if st.session_state.historico:
     st.markdown('<div class="card"><div class="card-title">📋 Histórico da sessão</div>',
                 unsafe_allow_html=True)
