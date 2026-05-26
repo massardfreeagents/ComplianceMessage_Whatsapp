@@ -260,7 +260,7 @@ if usar_grupos:
                 st.session_state.grupos_excluidos = set()
                 st.rerun()
 
-# ── Contatos ───────────────────────────────────────────────────────────────────
+# ── Contatos ──────────────────────────────────────────────────────────────────
 if usar_contatos:
     st.markdown("---")
     st.markdown('<div class="card-title" style="margin-bottom:0.5rem">👤 Contatos</div>', unsafe_allow_html=True)
@@ -271,8 +271,6 @@ if usar_contatos:
     if not st.session_state.contatos_cache:
         st.warning("⚠️ Secret WHATSAPP_CONTACTS não configurado.")
     else:
-        import pandas as pd
-
         filtro = st.text_input("🔎 Filtrar por nome", key="filtro_contato",
                                placeholder="Digite para filtrar...",
                                label_visibility="collapsed")
@@ -285,34 +283,27 @@ if usar_contatos:
         ativos = [c for c in lista_c if c["id"] not in st.session_state.contatos_excluidos]
         st.caption(f"{len(ativos)} ativo(s)" + (f" · {total_excluidos} removido(s)" if total_excluidos else ""))
 
-        # data_editor com checkbox — compacto, sem botão extra
-        df = pd.DataFrame([{
-            "✓":    c["id"] not in st.session_state.contatos_excluidos,
-            "Nome": c["nome"],
-            "_id":  c["id"],
-        } for c in lista_c])
-
-        edited = st.data_editor(
-            df[["✓","Nome"]],
-            use_container_width=True,
-            hide_index=True,
-            height=400,
-            column_config={
-                "✓":    st.column_config.CheckboxColumn("✓", width="small"),
-                "Nome": st.column_config.TextColumn("Nome", disabled=True),
-            },
-            key="contact_editor"
-        )
-
-        # atualiza excluídos baseado no checkbox — sem rerun
-        novos_excluidos = set()
-        for i, row in edited.iterrows():
-            if not row["✓"]:
-                novos_excluidos.add(lista_c[i]["id"])
-        st.session_state.contatos_excluidos = novos_excluidos
+        for c in lista_c:
+            excluido = c["id"] in st.session_state.contatos_excluidos
+            col_nome, col_btn = st.columns([9, 1])
+            with col_nome:
+                cor  = "rgba(255,255,255,0.25)" if excluido else "#dde2ee"
+                deco = "line-through" if excluido else "none"
+                st.markdown(
+                    f'<div style="font-size:0.83rem;color:{cor};'                    f'text-decoration:{deco};padding:5px 0 5px 4px;line-height:1.3">'                    f'👤 {c["nome"]}</div>',
+                    unsafe_allow_html=True)
+            with col_btn:
+                label = "↩" if excluido else "✕"
+                if st.button(label, key=f"tog_{c['id']}"):
+                    if excluido:
+                        st.session_state.contatos_excluidos.discard(c["id"])
+                    else:
+                        st.session_state.contatos_excluidos.add(c["id"])
+                    st.rerun()
 
         if total_excluidos:
-            if st.button("↺ Restaurar todos", key="restore_contatos", use_container_width=True):
+            if st.button("↺ Restaurar todos os removidos", key="restore_contatos",
+                         use_container_width=True):
                 st.session_state.contatos_excluidos = set()
                 st.rerun()
 
