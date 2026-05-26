@@ -288,29 +288,39 @@ if usar_contatos:
         ativos = [c for c in lista_c if c["id"] not in st.session_state.contatos_excluidos]
         st.caption(f"{len(ativos)} ativo(s)" + (f" · {total_excluidos} removido(s)" if total_excluidos else ""))
 
-        # CSS — botão pequeno, lista com altura fixa e scroll
+        # CSS personalizado para botão pequeno alinhado
         st.markdown("""
         <style>
-        .contact-row { display:flex; align-items:center; padding:7px 8px;
-            border-bottom:1px solid rgba(255,255,255,0.05); }
-        div[data-testid="stHorizontalBlock"] div[data-testid="column"]:last-child button {
-            min-height:32px !important; max-height:32px !important;
-            padding:2px 8px !important; font-size:0.85rem !important;
-            border-radius:6px !important; width:36px !important;
+        .contact-toggle button {
+            height: 30px !important;
+            min-height: 30px !important;
+            max-height: 30px !important;
+            width: 34px !important;
+            min-width: 34px !important;
+            max-width: 34px !important;
+            padding: 0 !important;
+            font-size: 0.8rem !important;
+            border-radius: 6px !important;
+            margin-top: 4px !important;
+        }
+        .contact-toggle div[data-testid="stHorizontalBlock"] {
+            align-items: center !important;
+            gap: 0 !important;
         }
         </style>
         """, unsafe_allow_html=True)
 
-        # container com altura fixa e scroll
+        # container com scroll próprio
         with st.container(height=380):
             for c in lista_c:
                 excluido = c["id"] in st.session_state.contatos_excluidos
-                col_nome, col_btn = st.columns([8, 1])
+                st.markdown('<div class="contact-toggle">', unsafe_allow_html=True)
+                col_nome, col_btn = st.columns([9, 1])
                 with col_nome:
-                    cor  = "#555e6e" if excluido else "#dde2ee"
+                    cor  = "rgba(255,255,255,0.25)" if excluido else "#dde2ee"
                     deco = "line-through" if excluido else "none"
                     st.markdown(
-                        f'<div style="font-size:0.83rem;color:{cor};'                        f'text-decoration:{deco};padding:6px 0;line-height:1.3">'                        f'👤 {c["nome"]}</div>',
+                        f'<div style="font-size:0.83rem;color:{cor};'                        f'text-decoration:{deco};padding:5px 0 5px 4px;line-height:1.3">'                        f'👤 {c["nome"]}</div>',
                         unsafe_allow_html=True)
                 with col_btn:
                     label = "↩" if excluido else "✕"
@@ -320,6 +330,7 @@ if usar_contatos:
                         else:
                             st.session_state.contatos_excluidos.add(c["id"])
                         st.rerun()
+                st.markdown('</div>', unsafe_allow_html=True)
 
         if total_excluidos:
             if st.button("↺ Restaurar todos os removidos", key="restore_contatos",
