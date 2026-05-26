@@ -397,6 +397,47 @@ if st.button(
         if enviados > 0:
             st.balloons()
 
+# ─── 4. ACOMPANHAR JOB ────────────────────────────────────────────────────────
+if worker_ok:
+    st.markdown('<div class="card"><div class="card-title">🔍 Acompanhar envio em background</div>', unsafe_allow_html=True)
+    col_job, col_btn = st.columns([4, 1])
+    with col_job:
+        job_id_input = st.text_input("Job ID", key="job_id_input",
+                                      placeholder="Ex: a1b2c3d4",
+                                      label_visibility="collapsed")
+    with col_btn:
+        checar = st.button("🔄 Checar", key="btn_checar", use_container_width=True)
+
+    if checar and job_id_input.strip():
+        try:
+            r = requests.get(
+                f"{os.getenv('WORKER_URL','')}/status/{job_id_input.strip()}",
+                timeout=10)
+            if r.status_code == 200:
+                job = r.json()
+                total_job = job.get("total", 0)
+                enviados_job = job.get("enviados", 0)
+                falhas_job = job.get("falhas", 0)
+                status_job = job.get("status", "")
+                progresso = (enviados_job + falhas_job) / total_job if total_job else 0
+                st.progress(progresso, text=f"{enviados_job + falhas_job}/{total_job} processados")
+                st.markdown(f"""
+                <div class="result-grid">
+                    <div class="stat-ok"><div class="stat-num-ok">{enviados_job}</div>
+                        <div class="stat-lbl" style="color:#25d366">Enviados</div></div>
+                    <div class="stat-fail"><div class="stat-num-fail">{falhas_job}</div>
+                        <div class="stat-lbl" style="color:#f87171">Falhas</div></div>
+                </div>""", unsafe_allow_html=True)
+                cor_status = "#25d366" if status_job == "done" else "#fbbf24"
+                label_status = "✅ Concluído" if status_job == "done" else "⏳ Em andamento" if status_job == "running" else "🕐 Na fila"
+                st.markdown(f'<div style="color:{cor_status};font-size:0.85rem;font-weight:700;margin-top:0.5rem">{label_status}</div>', unsafe_allow_html=True)
+            else:
+                st.error("Job não encontrado.")
+        except Exception as e:
+            st.error(f"Erro ao checar: {e}")
+
+    st.markdown('</div>', unsafe_allow_html=True)
+
 # ─── 4. HISTÓRICO ──────────────────────────────────────────────────────────────
 if st.session_state.historico:
     st.markdown('<div class="card"><div class="card-title">📋 Histórico da sessão</div>',
