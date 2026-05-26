@@ -203,7 +203,13 @@ def health():
 
 # ─── Init ─────────────────────────────────────────────────────────────────────
 
-if __name__ == "__main__":
+# Inicializa o banco ao carregar o módulo (funciona com gunicorn também)
+try:
     init_db()
+    print("✅ Banco de dados inicializado")
+except Exception as e:
+    print(f"⚠️ Erro ao inicializar banco: {e}")
+
+if __name__ == "__main__":
     port = int(os.getenv("PORT", 8000))
     app.run(host="0.0.0.0", port=port)
