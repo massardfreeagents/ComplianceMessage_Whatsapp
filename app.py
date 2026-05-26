@@ -283,23 +283,26 @@ if usar_contatos:
         ativos = [c for c in lista_c if c["id"] not in st.session_state.contatos_excluidos]
         st.caption(f"{len(ativos)} ativo(s)" + (f" · {total_excluidos} removido(s)" if total_excluidos else ""))
 
-        for c in lista_c:
-            excluido = c["id"] in st.session_state.contatos_excluidos
-            col_nome, col_btn = st.columns([9, 1])
-            with col_nome:
-                cor  = "rgba(255,255,255,0.25)" if excluido else "#dde2ee"
-                deco = "line-through" if excluido else "none"
-                st.markdown(
-                    f'<div style="font-size:0.83rem;color:{cor};'                    f'text-decoration:{deco};padding:5px 0 5px 4px;line-height:1.3">'                    f'👤 {c["nome"]}</div>',
-                    unsafe_allow_html=True)
-            with col_btn:
-                label = "↩" if excluido else "✕"
-                if st.button(label, key=f"tog_{c['id']}"):
-                    if excluido:
-                        st.session_state.contatos_excluidos.discard(c["id"])
-                    else:
-                        st.session_state.contatos_excluidos.add(c["id"])
-                    st.rerun()
+        with st.container(height=400):
+            for c in lista_c:
+                excluido = c["id"] in st.session_state.contatos_excluidos
+                col_nome, col_btn = st.columns([9, 1])
+                with col_nome:
+                    cor  = "rgba(255,255,255,0.25)" if excluido else "#dde2ee"
+                    deco = "line-through" if excluido else "none"
+                    st.markdown(
+                        f'<div style="font-size:0.83rem;color:{cor};'
+                        f'text-decoration:{deco};padding:5px 0 5px 4px;line-height:1.3">'
+                        f'👤 {c["nome"]}</div>',
+                        unsafe_allow_html=True)
+                with col_btn:
+                    label = "↩" if excluido else "✕"
+                    if st.button(label, key=f"tog_{c['id']}"):
+                        if excluido:
+                            st.session_state.contatos_excluidos.discard(c["id"])
+                        else:
+                            st.session_state.contatos_excluidos.add(c["id"])
+                        st.rerun()
 
         if total_excluidos:
             if st.button("↺ Restaurar todos os removidos", key="restore_contatos",
