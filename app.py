@@ -126,25 +126,30 @@ def load_contacts_from_secret() -> list:
 
 def corrigir_portugues(texto: str) -> str:
     resp = requests.post(
-        "https://api.anthropic.com/v1/messages",
-        headers={"Content-Type": "application/json"},
+        'https://api.groq.com/openai/v1/chat/completions',
+        headers={
+            'Authorization': f"Bearer {os.getenv('GROQ_API_KEY', '')}",
+            'Content-Type': 'application/json',
+        },
         json={
-            "model": "claude-sonnet-4-20250514",
-            "max_tokens": 1000,
-            "messages": [{
-                "role": "user",
-                "content": (
-                    "Corrija apenas os erros de ortografia, acentuação e gramática do texto abaixo. "
-                    "Não mude o estilo, tom, emojis, estrutura nem o conteúdo. "
-                    "Retorne SOMENTE o texto corrigido, sem explicações, sem aspas, sem comentários.\n\n"
-                    + texto
-                )
-            }]
+            'model': 'llama-3.3-70b-versatile',
+            'max_tokens': 1000,
+            'messages': [
+                {
+                    'role': 'system',
+                    'content': (
+                        'Corrija apenas os erros de ortografia, acentuacao e gramatica do texto do usuario. '
+                        'Nao mude o estilo, tom, emojis, estrutura nem o conteudo. '
+                        'Retorne SOMENTE o texto corrigido, sem explicacoes, sem aspas, sem comentarios.'
+                    )
+                },
+                {'role': 'user', 'content': texto}
+            ]
         },
         timeout=30,
     )
     resp.raise_for_status()
-    return resp.json()["content"][0]["text"].strip()
+    return resp.json()['choices'][0]['message']['content'].strip()
 
 def enviar_msg(jid: str, texto: str, imagem_b64: str = None, imagem_mime: str = "image/jpeg", imagem_nome: str = "imagem.jpg") -> bool:
     base = _api_url(); inst = _instance(); h = _headers()
