@@ -281,18 +281,35 @@ if usar_contatos:
 
         total_excluidos = len(st.session_state.contatos_excluidos)
         ativos = [c for c in lista_c if c["id"] not in st.session_state.contatos_excluidos]
-        st.caption(f"{len(ativos)} ativo(s)" + (f" · {total_excluidos} removido(s)" if total_excluidos else ""))
+
+        # Botões selecionar/deselecionar todos
+        col_info, col_sel, col_des = st.columns([3, 1, 1])
+        with col_info:
+            st.markdown(
+                f'<div style="color:#ffffff;font-size:0.82rem;font-weight:600;padding-top:6px">'
+                f'{len(ativos)} ativo(s)'
+                + (f' · <span style="color:#f87171">{total_excluidos} removido(s)</span>' if total_excluidos else '')
+                + '</div>',
+                unsafe_allow_html=True)
+        with col_sel:
+            if st.button("✅ Todos", key="sel_todos_c", use_container_width=True):
+                st.session_state.contatos_excluidos = set()
+                st.rerun()
+        with col_des:
+            if st.button("☐ Nenhum", key="des_todos_c", use_container_width=True):
+                st.session_state.contatos_excluidos = {c["id"] for c in todos_c}
+                st.rerun()
 
         with st.container(height=400):
             for c in lista_c:
                 excluido = c["id"] in st.session_state.contatos_excluidos
                 col_nome, col_btn = st.columns([9, 1])
                 with col_nome:
-                    cor  = "rgba(255,255,255,0.25)" if excluido else "#dde2ee"
+                    cor  = "#888ea8" if excluido else "#ffffff"
                     deco = "line-through" if excluido else "none"
                     st.markdown(
-                        f'<div style="font-size:0.83rem;color:{cor};'
-                        f'text-decoration:{deco};padding:5px 0 5px 4px;line-height:1.3">'
+                        f'<div style="font-size:0.84rem;color:{cor};font-weight:500;'
+                        f'text-decoration:{deco};padding:6px 0 6px 4px;line-height:1.3">'
                         f'👤 {c["nome"]}</div>',
                         unsafe_allow_html=True)
                 with col_btn:
@@ -303,12 +320,6 @@ if usar_contatos:
                         else:
                             st.session_state.contatos_excluidos.add(c["id"])
                         st.rerun()
-
-        if total_excluidos:
-            if st.button("↺ Restaurar todos os removidos", key="restore_contatos",
-                         use_container_width=True):
-                st.session_state.contatos_excluidos = set()
-                st.rerun()
 
         contatos_sel = [c["id"] for c in todos_c
                         if c["id"] not in st.session_state.contatos_excluidos]
