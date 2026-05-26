@@ -89,8 +89,14 @@ def enviar_msg(jid, texto, api_url, api_key, instance,
         endpoint = f"{api_url}/message/sendText/{instance}"
     try:
         r = requests.post(endpoint, headers=headers, json=payload, timeout=60, verify=False)
-        return r.status_code in [200, 201]
-    except Exception:
+        ok = r.status_code in [200, 201]
+        if not ok:
+            print(f"FALHA [{r.status_code}] {jid}: {r.text[:200]}")
+        else:
+            print(f"OK {jid}")
+        return ok
+    except Exception as e:
+        print(f"ERRO {jid}: {e}")
         return False
 
 def notificar(notify_jid, mensagem, api_url, api_key, instance):
