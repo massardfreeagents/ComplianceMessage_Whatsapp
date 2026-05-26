@@ -22,53 +22,24 @@ st.set_page_config(page_title="ForExperts · WhatsApp", page_icon="📱",
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap');
-*, *::before, *::after { box-sizing: border-box; }
-html, body, [class*="css"] { font-family:'Syne',sans-serif; background:#080e1a; color:#dde2ee; }
-.stApp { background:#080e1a; }
-section.main > div { max-width:720px !important; margin:0 auto; padding:1rem 1rem 4rem; }
-.hero { padding:1.5rem; background:linear-gradient(120deg,#0a1628 0%,#0d2010 60%,#080e1a 100%);
+*, *::before, *::after { box-sizing: border-box; } html, body, [class*="css"] { font-family:'Syne',sans-serif; background:#080e1a; color:#dde2ee; } .stApp { background:#080e1a; } section.main > div { max-width:720px !important; margin:0 auto; padding:1rem 1rem 4rem; } .hero { padding:1.5rem; background:linear-gradient(120deg,#0a1628 0%,#0d2010 60%,#080e1a 100%);
     border:1px solid rgba(37,211,102,0.18); border-radius:16px; margin-bottom:1.5rem;
-    position:relative; overflow:hidden; }
-.hero::after { content:''; position:absolute; right:-40px; top:-40px; width:200px; height:200px;
-    background:radial-gradient(circle,rgba(37,211,102,0.07) 0%,transparent 70%); pointer-events:none; }
-.hero-row { display:flex; align-items:center; gap:1rem; }
-.hero-icon { font-size:2.4rem; line-height:1; filter:drop-shadow(0 0 14px rgba(37,211,102,0.5)); }
-.hero-title { font-size:1.5rem; font-weight:800; color:#fff; margin:0; line-height:1.1; }
-.hero-sub { color:#25d366; font-size:0.72rem; font-weight:600; letter-spacing:0.13em; text-transform:uppercase; margin-top:0.25rem; }
-.hero-status { margin-top:0.9rem; font-size:0.8rem; }
-.card { background:rgba(255,255,255,0.028); border:1px solid rgba(255,255,255,0.07);
-    border-radius:14px; padding:1.2rem 1.3rem; margin-bottom:1rem; }
-.card-title { font-size:0.7rem; font-weight:700; color:#25d366; text-transform:uppercase;
-    letter-spacing:0.13em; margin-bottom:0.9rem; }
-.bubble { background:#1f2c34; border-radius:0 12px 12px 12px; padding:0.8rem 1rem;
+    position:relative; overflow:hidden; } .hero::after { content:''; position:absolute; right:-40px; top:-40px; width:200px; height:200px;
+    background:radial-gradient(circle,rgba(37,211,102,0.07) 0%,transparent 70%); pointer-events:none; } .hero-row { display:flex; align-items:center; gap:1rem; } .hero-icon { font-size:2.4rem; line-height:1; filter:drop-shadow(0 0 14px rgba(37,211,102,0.5)); } .hero-title { font-size:1.5rem; font-weight:800; color:#fff; margin:0; line-height:1.1; } .hero-sub { color:#25d366; font-size:0.72rem; font-weight:600; letter-spacing:0.13em; text-transform:uppercase; margin-top:0.25rem; } .hero-status { margin-top:0.9rem; font-size:0.8rem; } .card { background:rgba(255,255,255,0.028); border:1px solid rgba(255,255,255,0.07);
+    border-radius:14px; padding:1.2rem 1.3rem; margin-bottom:1rem; } .card-title { font-size:0.7rem; font-weight:700; color:#25d366; text-transform:uppercase;
+    letter-spacing:0.13em; margin-bottom:0.9rem; } .bubble { background:#1f2c34; border-radius:0 12px 12px 12px; padding:0.8rem 1rem;
     font-family:'DM Mono',monospace; font-size:0.82rem; color:#e9edef; line-height:1.6;
-    white-space:pre-wrap; word-break:break-word; border-left:3px solid #25d366; margin-top:0.5rem; }
-.result-grid { display:grid; grid-template-columns:1fr 1fr; gap:0.8rem; margin-top:1rem; }
-.stat-ok { background:rgba(37,211,102,0.08); border:1px solid rgba(37,211,102,0.25);
-    border-radius:12px; padding:1rem; text-align:center; }
-.stat-fail { background:rgba(248,113,113,0.08); border:1px solid rgba(248,113,113,0.25);
-    border-radius:12px; padding:1rem; text-align:center; }
-.stat-num-ok { font-size:2rem; font-weight:800; color:#25d366; }
-.stat-num-fail { font-size:2rem; font-weight:800; color:#f87171; }
-.stat-lbl { font-size:0.68rem; text-transform:uppercase; letter-spacing:0.1em; margin-top:0.2rem; }
-.log-line { font-family:'DM Mono',monospace; font-size:0.74rem; padding:5px 0;
-    border-bottom:1px solid rgba(255,255,255,0.04); display:flex; gap:0.8rem; align-items:center; }
-.log-ok { color:#25d366; } .log-fail { color:#f87171; } .log-time { color:#4a5568; white-space:nowrap; }
+    white-space:pre-wrap; word-break:break-word; border-left:3px solid #25d366; margin-top:0.5rem; } .result-grid { display:grid; grid-template-columns:1fr 1fr; gap:0.8rem; margin-top:1rem; } .stat-ok { background:rgba(37,211,102,0.08); border:1px solid rgba(37,211,102,0.25);
+    border-radius:12px; padding:1rem; text-align:center; } .stat-fail { background:rgba(248,113,113,0.08); border:1px solid rgba(248,113,113,0.25);
+    border-radius:12px; padding:1rem; text-align:center; } .stat-num-ok { font-size:2rem; font-weight:800; color:#25d366; } .stat-num-fail { font-size:2rem; font-weight:800; color:#f87171; } .stat-lbl { font-size:0.68rem; text-transform:uppercase; letter-spacing:0.1em; margin-top:0.2rem; } .log-line { font-family:'DM Mono',monospace; font-size:0.74rem; padding:5px 0;
+    border-bottom:1px solid rgba(255,255,255,0.04); display:flex; gap:0.8rem; align-items:center; } .log-ok { color:#25d366; } .log-fail { color:#f87171; } .log-time { color:#4a5568; white-space:nowrap; }
 /* contato chip com X */
-.contact-list { display:flex; flex-wrap:wrap; gap:6px; margin-top:0.5rem; }
-.stTextArea textarea { background:#0f1a2e !important; border:1px solid rgba(37,211,102,0.25) !important;
+.contact-list { display:flex; flex-wrap:wrap; gap:6px; margin-top:0.5rem; } .stTextArea textarea { background:#0f1a2e !important; border:1px solid rgba(37,211,102,0.25) !important;
     border-radius:10px !important; color:#dde2ee !important;
-    font-family:'DM Mono',monospace !important; font-size:0.88rem !important; line-height:1.65 !important; }
-.stTextInput input { background:#0f1a2e !important; border:1px solid rgba(255,255,255,0.1) !important;
-    border-radius:8px !important; color:#dde2ee !important; font-size:0.88rem !important; }
-.stButton > button { font-family:'Syne',sans-serif !important; font-weight:700 !important;
-    border-radius:10px !important; width:100%; }
-.stMultiSelect [data-baseweb="tag"] { background:rgba(37,211,102,0.15) !important; color:#25d366 !important; }
-.stCheckbox label, .stToggle label { font-size:0.95rem !important; padding:0.3rem 0 !important; }
-.bg-info { background:rgba(37,211,102,0.08); border:1px solid rgba(37,211,102,0.2);
-    border-radius:10px; padding:0.8rem 1rem; font-size:0.82rem; color:#25d366; margin-top:0.5rem; }
-</style>
-""", unsafe_allow_html=True)
+    font-family:'DM Mono',monospace !important; font-size:0.88rem !important; line-height:1.65 !important; } .stTextInput input { background:#0f1a2e !important; border:1px solid rgba(255,255,255,0.1) !important;
+    border-radius:8px !important; color:#dde2ee !important; font-size:0.88rem !important; } .stButton > button { font-family:'Syne',sans-serif !important; font-weight:700 !important;
+    border-radius:10px !important; width:100%; } .stMultiSelect [data-baseweb="tag"] { background:rgba(37,211,102,0.15) !important; color:#25d366 !important; } .stCheckbox label, .stToggle label { font-size:0.95rem !important; padding:0.3rem 0 !important; } .bg-info { background:rgba(37,211,102,0.08); border:1px solid rgba(37,211,102,0.2);
+    border-radius:10px; padding:0.8rem 1rem; font-size:0.82rem; color:#25d366; margin-top:0.5rem; } </style> """, unsafe_allow_html=True)
 
 
 # ─── Helpers API ──────────────────────────────────────────────────────────────
@@ -154,9 +125,7 @@ for k,v in {"grupos_cache":[],"contatos_cache":[],"historico":[],"msg_corrigida"
         st.session_state[k] = v
 
 # ─── HERO ─────────────────────────────────────────────────────────────────────
-api_ok = bool(_api_url() and os.getenv("WHATSAPP_API_KEY"))
-worker_ok = bool(os.getenv("WORKER_URL"))
-status_html = (
+api_ok = bool(_api_url() and os.getenv("WHATSAPP_API_KEY")) worker_ok = bool(os.getenv("WORKER_URL")) status_html = (
     f'<span style="color:#25d366;font-weight:700">● API conectada</span>'
     f'<span style="color:#4a5568;font-size:0.75rem"> · {_instance()}</span>'
     + (f' <span style="color:#25d366;font-size:0.75rem">· Worker ativo</span>' if worker_ok else
@@ -202,10 +171,8 @@ if st.button("🔤 Corrigir português", key="btn_corrigir", use_container_width
             st.error(f"Erro na correção: {e}")
 
 uploaded_img = st.file_uploader("📎 Anexar imagem (opcional)",
-                                type=["jpg","jpeg","png","webp"], key="img_upload")
-if mensagem.strip():
-    st.markdown(f'<div class="bubble">{mensagem}</div>', unsafe_allow_html=True)
-if uploaded_img:
+                                type=["jpg","jpeg","png","webp"], key="img_upload") if mensagem.strip():
+    st.markdown(f'<div class="bubble">{mensagem}</div>', unsafe_allow_html=True) if uploaded_img:
     st.image(uploaded_img, caption="Imagem que será enviada", use_container_width=True)
 
 st.markdown('</div>', unsafe_allow_html=True)
@@ -276,6 +243,8 @@ if usar_contatos:
     if not st.session_state.contatos_cache:
         st.warning("⚠️ Secret WHATSAPP_CONTACTS não configurado.")
     else:
+        import pandas as pd
+
         filtro = st.text_input("🔎 Filtrar por nome", key="filtro_contato",
                                placeholder="Digite para filtrar...",
                                label_visibility="collapsed")
@@ -288,49 +257,40 @@ if usar_contatos:
         ativos = [c for c in lista_c if c["id"] not in st.session_state.contatos_excluidos]
         st.caption(f"{len(ativos)} ativo(s)" + (f" · {total_excluidos} removido(s)" if total_excluidos else ""))
 
-        # CSS personalizado para botão pequeno alinhado
-        st.markdown("""
-        <style>
-        .contact-toggle button {
-            height: 30px !important;
-            min-height: 30px !important;
-            max-height: 30px !important;
-            width: 34px !important;
-            min-width: 34px !important;
-            max-width: 34px !important;
-            padding: 0 !important;
-            font-size: 0.8rem !important;
-            border-radius: 6px !important;
-            margin-top: 4px !important;
-        }
-        .contact-toggle div[data-testid="stHorizontalBlock"] {
-            align-items: center !important;
-            gap: 0 !important;
-        }
-        </style>
-        """, unsafe_allow_html=True)
+        df = pd.DataFrame([{
+            "Enviar": c["id"] not in st.session_state.contatos_excluidos,
+            "Nome":   c["nome"],
+        } for c in lista_c])
 
-        # container com scroll próprio
-        with st.container(height=380):
-            for c in lista_c:
-                excluido = c["id"] in st.session_state.contatos_excluidos
-                st.markdown('<div class="contact-toggle">', unsafe_allow_html=True)
-                col_nome, col_btn = st.columns([9, 1])
-                with col_nome:
-                    cor  = "rgba(255,255,255,0.25)" if excluido else "#dde2ee"
-                    deco = "line-through" if excluido else "none"
-                    st.markdown(
-                        f'<div style="font-size:0.83rem;color:{cor};'                        f'text-decoration:{deco};padding:5px 0 5px 4px;line-height:1.3">'                        f'👤 {c["nome"]}</div>',
-                        unsafe_allow_html=True)
-                with col_btn:
-                    label = "↩" if excluido else "✕"
-                    if st.button(label, key=f"tog_{c['id']}"):
-                        if excluido:
-                            st.session_state.contatos_excluidos.discard(c["id"])
-                        else:
-                            st.session_state.contatos_excluidos.add(c["id"])
-                        st.rerun()
-                st.markdown('</div>', unsafe_allow_html=True)
+        edited = st.data_editor(
+            df[["Enviar","Nome"]],
+            use_container_width=True,
+            hide_index=True,
+            height=380,
+            column_config={
+                "Enviar": st.column_config.CheckboxColumn("✓", width="small"),
+                "Nome":   st.column_config.TextColumn("Nome", disabled=True),
+            },
+            key="contact_editor"
+        )
+
+        novos_excluidos = set()
+        for i, row in edited.iterrows():
+            if not row["Enviar"]:
+                novos_excluidos.add(lista_c[i]["id"])
+        if novos_excluidos != st.session_state.contatos_excluidos:
+            st.session_state.contatos_excluidos = novos_excluidos
+
+        if total_excluidos:
+            if st.button("↺ Restaurar todos os removidos", key="restore_contatos",
+                         use_container_width=True):
+                st.session_state.contatos_excluidos = set()
+                st.rerun()
+
+        contatos_sel = [c["id"] for c in todos_c
+                        if c["id"] not in st.session_state.contatos_excluidos]
+
+        st.markdown('</div>', unsafe_allow_html=True)
 
         if total_excluidos:
             if st.button("↺ Restaurar todos os removidos", key="restore_contatos",
@@ -344,9 +304,7 @@ if usar_contatos:
 st.markdown('</div>', unsafe_allow_html=True)
 
 # ─── 3. MODO DE ENVIO ────────────────────────────────────────────────────────
-todos_destinos = grupos_sel + contatos_sel
-total  = len(todos_destinos)
-pronto = bool(mensagem.strip()) and total > 0
+todos_destinos = grupos_sel + contatos_sel total  = len(todos_destinos) pronto = bool(mensagem.strip()) and total > 0
 
 if total > 0:
     st.markdown(
