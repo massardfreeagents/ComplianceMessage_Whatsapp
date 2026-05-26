@@ -280,29 +280,38 @@ if usar_contatos:
                                placeholder="Digite para filtrar...",
                                label_visibility="collapsed")
 
-        lista_c = [c for c in st.session_state.contatos_cache
-                   if c["id"] not in st.session_state.contatos_excluidos
-                   and (not filtro or filtro.lower() in c["nome"].lower())]
+        todos_c = st.session_state.contatos_cache
+        lista_c = [c for c in todos_c
+                   if not filtro or filtro.lower() in c["nome"].lower()]
 
         total_excluidos = len(st.session_state.contatos_excluidos)
-        st.caption(f"{len(lista_c)} contato(s)"
-                   + (f" · {total_excluidos} removido(s)" if total_excluidos else ""))
+        ativos = [c for c in lista_c if c["id"] not in st.session_state.contatos_excluidos]
+        st.caption(f"{len(ativos)} ativo(s)" + (f" · {total_excluidos} removido(s)" if total_excluidos else ""))
 
-        # Renderiza lista inteira via HTML+JS — sem rerun, sem scroll para o topo
+        # Renderiza lista via HTML+JS com toggle — sem rerun, sem scroll para o topo
         itens_html = ""
         for c in lista_c:
-            jid_safe  = c["id"].replace("@","__")
-            nome_safe = c["nome"].replace("'", "\'").replace('"', "&quot;")
+            jid_safe   = c["id"].replace("@","__")
+            nome_safe  = c["nome"].replace("'", "\'").replace('"', "&quot;")
+            excluido   = c["id"] in st.session_state.contatos_excluidos
+            linha_style = "opacity:0.35;text-decoration:line-through;" if excluido else ""
+            btn_style   = ("background:rgba(37,211,102,0.15);border:1px solid rgba(37,211,102,0.4);color:#25d366;"
+                          if excluido else
+                          "background:rgba(248,113,113,0.15);border:1px solid rgba(248,113,113,0.4);color:#f87171;")
+            btn_label   = "↩" if excluido else "✕"
             itens_html += f"""
             <div id="row_{jid_safe}" style="display:flex;align-items:center;justify-content:space-between;
-                padding:10px 8px;border-bottom:1px solid rgba(255,255,255,0.06);">
+                padding:10px 8px;border-bottom:1px solid rgba(255,255,255,0.06);{linha_style}">
                 <span style="font-size:0.85rem;color:#dde2ee;flex:1;padding-right:8px">👤 {c["nome"]}</span>
-                <button onclick="removeContact('{jid_safe}', '{nome_safe}')"
-                    style="background:rgba(248,113,113,0.15);border:1px solid rgba(248,113,113,0.4);
-                    color:#f87171;border-radius:8px;padding:8px 14px;font-size:1rem;
-                    cursor:pointer;min-width:42px;min-height:42px;font-weight:700;
-                    flex-shrink:0;touch-action:manipulation;">✕</button>
+                <button id="btn_{jid_safe}" onclick="toggleContact('{jid_safe}')"
+                    style="{btn_style}border-radius:8px;padding:8px 14px;font-size:1.1rem;
+                    cursor:pointer;min-width:44px;min-height:44px;font-weight:700;
+                    flex-shrink:0;touch-action:manipulation;">{btn_label}</button>
             </div>"""
+
+        # lista de excluídos atual para o JS conhecer
+        excluidos_js = list(st.session_state.contatos_excluidos)
+        excluidos_str = ",".join([e.replace("@","__") for e in excluidos_js])
 
         html_lista = f"""
         <div id="contact-list" style="max-height:420px;overflow-y:auto;
@@ -311,49 +320,71 @@ if usar_contatos:
             {itens_html if itens_html else
              '<div style="padding:1rem;color:#8892a4;font-size:0.85rem">Nenhum contato encontrado.</div>'}
         </div>
-        <div id="removed-log" style="margin-top:0.5rem;font-size:0.75rem;color:#f87171;min-height:20px"></div>
+        <div id="status-log" style="margin-top:0.5rem;font-size:0.75rem;color:#8892a4;min-height:20px"></div>
+        <input type="hidden" id="excluidos-input" value="{excluidos_str}">
 
         <script>
-        const removed = [];
-        function removeContact(jidSafe, nome) {{
-            const row = document.getElementById('row_' + jidSafe);
-            if (row) {{
-                row.style.opacity = '0.3';
-                row.style.textDecoration = 'line-through';
-                row.querySelector('button').disabled = true;
+        // estado local dos excluídos
+        const excluidos = new Set(document.getElementById("excluidos-input").value
+            .split(",").filter(x => x));
+
+        function toggleContact(jidSafe) {{
+            const row = document.getElementById("row_" + jidSafe);
+            const btn = document.getElementById("btn_" + jidSafe);
+            if (excluidos.has(jidSafe)) {{
+                // restaurar
+                excluidos.delete(jidSafe);
+                row.style.opacity = "1";
+                row.style.textDecoration = "none";
+                btn.innerText = "✕";
+                btn.style.background = "rgba(248,113,113,0.15)";
+                btn.style.border = "1px solid rgba(248,113,113,0.4)";
+                btn.style.color = "#f87171";
+            }} else {{
+                // remover
+                excluidos.add(jidSafe);
+                row.style.opacity = "0.35";
+                row.style.textDecoration = "line-through";
+                btn.innerText = "↩";
+                btn.style.background = "rgba(37,211,102,0.15)";
+                btn.style.border = "1px solid rgba(37,211,102,0.4)";
+                btn.style.color = "#25d366";
             }}
-            removed.push(jidSafe);
-            document.getElementById('removed-log').innerText =
-                removed.length + ' contato(s) marcado(s) para remover — clique em Confirmar Remoções';
-            // envia para o Streamlit via query param hack
-            window.parent.postMessage({{type:'streamlit:setComponentValue', value: removed.join(',')}}, '*');
+            const total = excluidos.size;
+            document.getElementById("status-log").innerText =
+                total > 0 ? total + " removido(s) — clique em Confirmar" : "";
+            window.parent.postMessage({{
+                type: "streamlit:setComponentValue",
+                value: Array.from(excluidos).join(",")
+            }}, "*");
         }}
         </script>
         """
 
         import streamlit.components.v1 as components
-        resultado = components.html(html_lista, height=min(460, 60 + len(lista_c)*53), scrolling=False)
+        components.html(html_lista, height=min(480, 80 + len(lista_c)*54), scrolling=False)
 
-        # botão confirmar remoções
         col_conf, col_rest = st.columns([2,1])
         with col_conf:
             ids_para_remover = st.text_input("IDs removidos (não editar)", key="ids_remover",
                                               label_visibility="collapsed", placeholder="")
-            if st.button("✅ Confirmar remoções", key="btn_confirmar_remocao",
-                         use_container_width=True):
+            if st.button("✅ Confirmar alterações", key="btn_confirmar_remocao", use_container_width=True):
+                novos_excluidos = set()
                 if ids_para_remover:
                     for jid_safe in ids_para_remover.split(","):
-                        jid_real = jid_safe.replace("__","@")
-                        st.session_state.contatos_excluidos.add(jid_real)
-                    st.session_state["ids_remover"] = ""
-                    st.rerun()
+                        if jid_safe.strip():
+                            novos_excluidos.add(jid_safe.strip().replace("__","@"))
+                st.session_state.contatos_excluidos = novos_excluidos
+                st.session_state["ids_remover"] = ""
+                st.rerun()
         with col_rest:
             if total_excluidos:
-                if st.button("↺ Restaurar", key="restore_contatos", use_container_width=True):
+                if st.button("↺ Restaurar todos", key="restore_contatos", use_container_width=True):
                     st.session_state.contatos_excluidos = set()
                     st.rerun()
 
-        contatos_sel = [c["id"] for c in lista_c]
+        contatos_sel = [c["id"] for c in todos_c
+                        if c["id"] not in st.session_state.contatos_excluidos]
 
 st.markdown('</div>', unsafe_allow_html=True)
 
