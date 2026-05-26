@@ -370,12 +370,12 @@ if usar_contatos:
                                               label_visibility="collapsed", placeholder="")
             if st.button("✅ Confirmar alterações", key="btn_confirmar_remocao", use_container_width=True):
                 novos_excluidos = set()
-                if ids_para_remover:
-                    for jid_safe in ids_para_remover.split(","):
+                raw = st.session_state.get("ids_remover", "")
+                if raw:
+                    for jid_safe in raw.split(","):
                         if jid_safe.strip():
                             novos_excluidos.add(jid_safe.strip().replace("__","@"))
                 st.session_state.contatos_excluidos = novos_excluidos
-                st.session_state["ids_remover"] = ""
                 st.rerun()
         with col_rest:
             if total_excluidos:
