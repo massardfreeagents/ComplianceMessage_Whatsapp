@@ -162,7 +162,7 @@ def dispatch():
     upsert_job(job_id, "queued", len(data["destinos"]), 0, 0)
     save_payload(job_id, data)
 
-    t = threading.Thread(target=processar_job, args=(job_id, data), daemon=True)
+    t = threading.Thread(target=processar_job, args=(job_id, data), daemon=False)
     t.start()
 
     return jsonify({"job_id": job_id, "total": len(data["destinos"]), "status": "queued"})
