@@ -288,100 +288,42 @@ if usar_contatos:
         ativos = [c for c in lista_c if c["id"] not in st.session_state.contatos_excluidos]
         st.caption(f"{len(ativos)} ativo(s)" + (f" · {total_excluidos} removido(s)" if total_excluidos else ""))
 
-        # Renderiza lista em HTML com scroll — botão pequeno inline
-        # Ao clicar, armazena o ID num campo oculto e submete via form
-        excluidos_js = ",".join([e.replace("@","__") for e in st.session_state.contatos_excluidos])
-
-        itens_html = ""
-        for c in lista_c:
-            jid_safe  = c["id"].replace("@","__")
-            excluido  = c["id"] in st.session_state.contatos_excluidos
-            nome_disp = c["nome"]
-            if excluido:
-                estilo_linha = "opacity:0.4;text-decoration:line-through;"
-                btn_label    = "↩"
-                btn_cor      = "background:#1a3a2a;border:1px solid #25d366;color:#25d366;"
-            else:
-                estilo_linha = ""
-                btn_label    = "✕"
-                btn_cor      = "background:#2a1a1a;border:1px solid #f87171;color:#f87171;"
-
-            itens_html += f"""
-            <div style="display:flex;align-items:center;padding:8px 10px;
-                border-bottom:1px solid rgba(255,255,255,0.05);{estilo_linha}">
-                <span style="flex:1;font-size:0.83rem;color:#dde2ee;line-height:1.3">{nome_disp}</span>
-                <button onclick="toggle(\'{jid_safe}\')"
-                    style="{btn_cor}border-radius:6px;padding:5px 10px;
-                    font-size:0.95rem;cursor:pointer;min-width:36px;min-height:36px;
-                    font-weight:700;flex-shrink:0;margin-left:8px;touch-action:manipulation;">
-                    {btn_label}</button>
-            </div>"""
-
-        html_lista = f"""
+        # CSS — botão pequeno, lista com altura fixa e scroll
+        st.markdown("""
         <style>
-            #lista {{ max-height:350px;overflow-y:auto;border-radius:10px;
-                background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07); }}
-            #status {{ font-size:0.75rem;color:#8892a4;margin-top:6px;min-height:18px; }}
-            #hidden-action {{ display:none; }}
+        .contact-row { display:flex; align-items:center; padding:7px 8px;
+            border-bottom:1px solid rgba(255,255,255,0.05); }
+        div[data-testid="stHorizontalBlock"] div[data-testid="column"]:last-child button {
+            min-height:32px !important; max-height:32px !important;
+            padding:2px 8px !important; font-size:0.85rem !important;
+            border-radius:6px !important; width:36px !important;
+        }
         </style>
-        <div id="lista">{itens_html}</div>
-        <div id="status"></div>
-        <input id="hidden-action" type="text" value="">
+        """, unsafe_allow_html=True)
 
-        <script>
-        const excluidos = new Set("{excluidos_js}".split(",").filter(x=>x));
-
-        function toggle(jidSafe) {{
-            // atualiza visual
-            const rows = document.querySelectorAll("#lista > div");
-            rows.forEach(row => {{
-                const btn = row.querySelector("button");
-                if (!btn) return;
-                const onclick = btn.getAttribute("onclick");
-                if (!onclick || !onclick.includes(jidSafe)) return;
-                const span = row.querySelector("span");
-                if (excluidos.has(jidSafe)) {{
-                    excluidos.delete(jidSafe);
-                    row.style.opacity="1"; row.style.textDecoration="none";
-                    btn.innerText="✕";
-                    btn.style.cssText="background:#2a1a1a;border:1px solid #f87171;color:#f87171;border-radius:6px;padding:5px 10px;font-size:0.95rem;cursor:pointer;min-width:36px;min-height:36px;font-weight:700;flex-shrink:0;margin-left:8px;touch-action:manipulation;";
-                }} else {{
-                    excluidos.add(jidSafe);
-                    row.style.opacity="0.4"; row.style.textDecoration="line-through";
-                    btn.innerText="↩";
-                    btn.style.cssText="background:#1a3a2a;border:1px solid #25d366;color:#25d366;border-radius:6px;padding:5px 10px;font-size:0.95rem;cursor:pointer;min-width:36px;min-height:36px;font-weight:700;flex-shrink:0;margin-left:8px;touch-action:manipulation;";
-                }}
-            }});
-            const total = excluidos.size;
-            document.getElementById("status").innerText =
-                total > 0 ? total + " removido(s) — pressione Aplicar" : "";
-            // passa valor para Streamlit
-            const val = Array.from(excluidos).join(",");
-            document.getElementById("hidden-action").value = val;
-            window.parent.postMessage({{type:"streamlit:setComponentValue", value: val}}, "*");
-        }}
-        </script>
-        """
-
-        import streamlit.components.v1 as components
-        components.html(html_lista, height=420, scrolling=False)
-
-        # campo oculto que recebe os IDs via postMessage
-        novo_estado = st.text_input("estado", key="ids_remover",
-                                     label_visibility="collapsed", placeholder="")
-
-        if st.button("✅ Aplicar seleção", key="btn_aplicar", use_container_width=True):
-            novos_excluidos = set()
-            raw = st.session_state.get("ids_remover", "")
-            if raw:
-                for jid_safe in raw.split(","):
-                    if jid_safe.strip():
-                        novos_excluidos.add(jid_safe.strip().replace("__","@"))
-            st.session_state.contatos_excluidos = novos_excluidos
-            st.rerun()
+        # container com altura fixa e scroll
+        with st.container(height=380):
+            for c in lista_c:
+                excluido = c["id"] in st.session_state.contatos_excluidos
+                col_nome, col_btn = st.columns([8, 1])
+                with col_nome:
+                    cor  = "#555e6e" if excluido else "#dde2ee"
+                    deco = "line-through" if excluido else "none"
+                    st.markdown(
+                        f'<div style="font-size:0.83rem;color:{cor};'                        f'text-decoration:{deco};padding:6px 0;line-height:1.3">'                        f'👤 {c["nome"]}</div>',
+                        unsafe_allow_html=True)
+                with col_btn:
+                    label = "↩" if excluido else "✕"
+                    if st.button(label, key=f"tog_{c['id']}"):
+                        if excluido:
+                            st.session_state.contatos_excluidos.discard(c["id"])
+                        else:
+                            st.session_state.contatos_excluidos.add(c["id"])
+                        st.rerun()
 
         if total_excluidos:
-            if st.button("↺ Restaurar todos", key="restore_contatos", use_container_width=True):
+            if st.button("↺ Restaurar todos os removidos", key="restore_contatos",
+                         use_container_width=True):
                 st.session_state.contatos_excluidos = set()
                 st.rerun()
 
